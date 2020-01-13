@@ -2,17 +2,16 @@ import requests
 import argparse
 import os
 
+from .commands import issues, pull_requests
+
 TOKEN = os.environ.get('GITHUB_TOKEN')
 
 def get_args():
 	parser = argparse.ArgumentParser(description="CLI tool to help manage Github stuff")
-	subparsers = parser.add_subparsers(title="commands")
+	subparsers = parser.add_subparsers(title="commands", dest="type")
 
-	issue_parser = subparsers.add_parser("issue")
-	
-	issue_sub_parser = issue_parser.add_subparsers(title="sub-commands")
-	list_parser = issue_sub_parser.add_parser("list")
-	list_parser.add_argument("--all", "-a", default=False, action="store_true", help="List All Issues")
+	issues.add_command_parser(subparsers)
+	pull_requests.add_command_parser(subparsers)
 
 	return parser.parse_args()
 
@@ -30,8 +29,4 @@ def get_issues():
 if __name__ == "__main__":
 	args = get_args()
 	print(vars(args))
-	print(TOKEN)
-	print(get_issues())
-
-
 
