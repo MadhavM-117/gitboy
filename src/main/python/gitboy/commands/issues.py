@@ -1,4 +1,7 @@
 import argparse
+from gitboy.utils.api_utils import GithubAPIs
+
+from . import BaseCommand
 
 def add_command_parser(subparsers: argparse._SubParsersAction):
 	"""
@@ -27,3 +30,26 @@ def add_command_parser(subparsers: argparse._SubParsersAction):
 	label_parser: argparse.ArgumentParser = issue_sub_parser.add_parser("label")
 	label_parser.add_argument("label", type=str, help="Filter issues that have this label")
 
+
+
+class IssueCommand(BaseCommand):
+	def __init__(self, args: dict):
+		super().__init__(args)
+		self.api = GithubAPIs()
+
+	def validate(self):
+		# returning true as no validation currently required. 
+		return self.type == "issues"
+
+	def process(self):
+		if self.sub_type == "all":
+			issues = self.api.get_issues("all")
+			print(f"Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
+			return
+
+		if self.sub_type == "assigned":
+			issues = self.api.get_issues("assigned")
+			print(f"Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
+			return
+
+		return NotImplemented

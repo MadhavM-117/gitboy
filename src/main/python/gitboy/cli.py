@@ -13,7 +13,7 @@ def get_args():
 	issues.add_command_parser(subparsers)
 	pull_requests.add_command_parser(subparsers)
 
-	return parser.parse_args()
+	return vars(parser.parse_args())
 
 def get_issues():
 	if TOKEN is None:
@@ -28,5 +28,9 @@ def get_issues():
 
 if __name__ == "__main__":
 	args = get_args()
-	print(vars(args))
+	# TODO: Add dispatch logic to send execution to correct handler
+	if args['type'] == "issues":
+		issues.IssueCommand(args).process()
+		exit()
+
 
