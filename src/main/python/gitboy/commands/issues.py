@@ -44,12 +44,17 @@ class IssueCommand(BaseCommand):
 	def process(self):
 		if self.sub_type == "all":
 			issues = self.api.get_issues("all")
-			print(f"Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
+			print(f"{len(issues)} Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
 			return
 
 		if self.sub_type == "assigned":
 			issues = self.api.get_issues("assigned")
-			print(f"Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
+			print(f"{len(issues)} Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
+			return
+
+		if self.sub_type == "mentioned":
+			issues = self.api.get_issues("mentioned")
+			print(f"{len(issues)} Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
 			return
 
 		return NotImplemented

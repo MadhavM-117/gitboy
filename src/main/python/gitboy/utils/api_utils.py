@@ -12,10 +12,26 @@ class GithubAPIs:
 		if config is None:
 			config = get_config()
 		
-		self._base_url = "https://api.github.com/"
+		self._base_url = "https://api.github.com"
 		self._config = config
 		self.token = config.token
 		self.organization = config.organization
+
+	@staticmethod
+	def get_next_pagination_link(link_header: str):
+		"""
+		Function to get the next pagination link as per Github's API structure
+		"""
+		if link_header is None:
+			return None
+
+		links = link_header.split(',')
+		for link in links:
+			values = link.split(';')
+			if values[1].endswith('rel="next"'):
+				return values[0].replace('<', '').replace('>', '')
+		
+		return None
 
 	def get_issues(self, _filter: str = "assigned"):
 		"""
@@ -41,7 +57,19 @@ class GithubAPIs:
 
 		get_issues_req.raise_for_status()
 
-		response = get_issues_req.json()
+		issues = []
+		issues.extend(list(get_issues_req.json()))
 
-		return [f"{i['html_url']} - f{i['title']}" for i in response]
+		next_req = get_issues_req
+
+		while self.get_next_pagination_link(next_req.headers.get('Link')) is not None:
+			next_url = self.get_next_pagination_link(next_req.headers.get('Link'))
+			next_req = requests.get(next_url, headers={
+				"Accept": "application/vnd.github.v3+json",
+				"Authorization": f"token {self.token.strip()}"
+			})
+			next_req.raise_for_status()
+			issues.extend(list(next_req.json()))
+
+		return [f"{i['title']} - {i['html_url']}" for i in issues]
 		
