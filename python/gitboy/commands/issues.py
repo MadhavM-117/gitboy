@@ -48,8 +48,8 @@ class IssueCommand(BaseCommand):
 			return
 
 		if self.sub_type == "assigned":
-			issues = self.api.get_issues("assigned")
-			print(f"{len(issues)} Issues ({self.sub_type}): "+ "\n" + '\n'.join(issues))
+			issues = self.api.get_issues_graphql("assigned")
+			print(f"{issues}")
 			return
 
 		if self.sub_type == "mentioned":

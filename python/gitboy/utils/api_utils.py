@@ -6,16 +6,18 @@ from typing import Optional
 
 import requests
 from .config import get_config, Config
+from .graphql import GraphQLClient
 
 class GithubAPIs:
 	def __init__(self, config: Optional[Config] = None):
 		if config is None:
 			config = get_config()
 		
-		self._base_url = "https://api.github.com"
+		self._base_url = "https://api.github.com/graphql"
 		self._config = config
 		self.token = config.token
 		self.organization = config.organization
+		self._client = GraphQLClient(self._base_url, auth=f"bearer {self.token}")
 
 	@staticmethod
 	def get_next_pagination_link(link_header: str):
@@ -72,4 +74,25 @@ class GithubAPIs:
 			issues.extend(list(next_req.json()))
 
 		return [f"{i['title']} - {i['html_url']}" for i in issues]
+		
+	def get_issues_graphql(self, _filter: str = "assigned"):
+		"""
+		Function to get issues using the specified filter
+		Args:
+			_filter: Filter to use while fetching the issues. Default: 'assigned'
+							 One of ['assigned', 'created', 'mentioned', 'subscribed', 'all']
+		"""
+		resp = self._client.process(
+			query="""
+query {
+	viewer {
+		issues(first:10) {
+			nodes {
+				id
+			}
+		}
+	}
+}
+		""")
+		return resp
 		
