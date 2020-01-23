@@ -23,6 +23,7 @@ def get_args():
 
 if __name__ == "__main__":
 	parser = get_parser()
+	args = vars(parser.parse_args())
 	# @TODO: Add dispatch logic to send execution to correct handler
 	if args['type'] == "issues":
 		if not issues.IssueCommand(args).process():
