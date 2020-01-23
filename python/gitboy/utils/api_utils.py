@@ -6,7 +6,7 @@ from typing import Optional
 
 import requests
 from .config import get_config, Config
-from .graphql import GraphQLClient
+from .graphql.core import GraphQLClient
 
 class GithubAPIs:
 	def __init__(self, config: Optional[Config] = None):
