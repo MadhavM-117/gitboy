@@ -30,6 +30,8 @@ def add_command_parser(subparsers: argparse._SubParsersAction):
 	label_parser: argparse.ArgumentParser = issue_sub_parser.add_parser("label")
 	label_parser.add_argument("label", type=str, help="Filter issues that have this label")
 
+	return issue_parser
+
 
 
 class IssueCommand(BaseCommand):
@@ -48,7 +50,7 @@ class IssueCommand(BaseCommand):
 			return
 
 		if self.sub_type == "assigned":
-			issues = self.api.get_issues_graphql("assigned")
+			issues = self.api.get_user_repos()
 			print(f"{issues}")
 			return
 

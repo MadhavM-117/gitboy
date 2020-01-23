@@ -7,6 +7,7 @@ from typing import Optional
 import requests
 from .config import get_config, Config
 from .graphql.core import GraphQLClient
+from .graphql import query as gql_query
 
 class GithubAPIs:
 	def __init__(self, config: Optional[Config] = None):
@@ -35,64 +36,21 @@ class GithubAPIs:
 		
 		return None
 
-	def get_issues(self, _filter: str = "assigned"):
-		"""
-		Function to get issues using the specified filter
-		Args:
-			_filter: Filter to use while fetching the issues. Default: 'assigned'
-							 One of ['assigned', 'created', 'mentioned', 'subscribed', 'all']
-		"""
-		issues_url = f"{self._base_url}"
- 
-		if self.organization is not None:
-			issues_url += f"/orgs/{self.organization}"
+	def get_user_repos(self):
+		cursor = ""
+		data = []
+		while True:
+			query = gql_query.RepositoryFetchQuery(variables={"cursor": cursor})
+			_response = self._client.process(query)
+			if None in [_response['totalCount'], _response['lastCursor'], _response['data']]:
+				break
 
-		issues_url += "/issues"
+			data.extend(_response['data'])
 
-		get_issues_req = requests.get(issues_url, headers={
-			"Accept": "application/vnd.github.v3+json",
-			"Authorization": f"token {self.token.strip()}"
-		}, params={
-			"filter": _filter,
-			"sort": "updated"
-		})
+			if len(data) >= _response['totalCount']:
+				# exit loop once pagination loop completes
+				break
 
-		get_issues_req.raise_for_status()
+			cursor = _response['lastCursor']
 
-		issues = []
-		issues.extend(list(get_issues_req.json()))
-
-		next_req = get_issues_req
-
-		while self.get_next_pagination_link(next_req.headers.get('Link')) is not None:
-			next_url = self.get_next_pagination_link(next_req.headers.get('Link'))
-			next_req = requests.get(next_url, headers={
-				"Accept": "application/vnd.github.v3+json",
-				"Authorization": f"token {self.token.strip()}"
-			})
-			next_req.raise_for_status()
-			issues.extend(list(next_req.json()))
-
-		return [f"{i['title']} - {i['html_url']}" for i in issues]
-		
-	def get_issues_graphql(self, _filter: str = "assigned"):
-		"""
-		Function to get issues using the specified filter
-		Args:
-			_filter: Filter to use while fetching the issues. Default: 'assigned'
-							 One of ['assigned', 'created', 'mentioned', 'subscribed', 'all']
-		"""
-		resp = self._client.process(
-			query="""
-query {
-	viewer {
-		issues(first:10) {
-			nodes {
-				id
-			}
-		}
-	}
-}
-		""")
-		return resp
-		
+		return data

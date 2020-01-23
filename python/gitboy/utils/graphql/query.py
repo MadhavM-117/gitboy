@@ -1,37 +1,38 @@
-FETCH_USER_ISSUES = """
-query {
-	viewer {
-		issues(orderBy:{direction:DESC, field:UPDATED_AT}, filterBy:{states:[OPEN]}, first:10) {
-			totalCount
-			nodes {
-				title
-				url
-			}
-		}
-	}
-}
-"""
+from typing import Optional, List
+from .core import BaseQuery
+from .constants import *
 
-FETCH_ALL_ISSUES_THROUGH_REPOS = """
-query {
-	viewer {
-    watching(first:100, orderBy:{field:UPDATED_AT, direction:DESC}) {
-      totalCount
-      nodes {
-        name
-        issues(first:100, orderBy:{field:UPDATED_AT, direction:DESC} ,filterBy:{states:[OPEN, CLOSED]}) {
-          totalCount
-          nodes {
-            title
-            url
-            updatedAt
-          }
-        }
-      }
-    }
-  }
-}
-"""
+def get_last_cursor(edges:List[dict]):
+    """
+    Function to get the last cursor of the edges in a response
+    """
+    if len(edges) > 0:
+        return edges[-1].get("cursor")
 
-# @TODO: Figure out a query to fetch all issues, even if multiple requests are needed for pagination. 
-# @TODO: Figure out how to combine requests to fetch all objects.  
+    return None
+
+class RepositoryFetchQuery(BaseQuery):
+    def __init__(self, variables:Optional[dict] = None):
+        super().__init__(variables)
+        self.query = FETCH_REPOS
+
+    def process_response(self, response: dict):
+        _response = {"_raw": response}
+        watching = response.get("data", {}).get("viewer", {}).get("watching", {})
+        edges = watching.get("edges", [])
+
+        def edge_to_data(edge: dict):
+            node = edge.get("node", {})
+            _data = {
+                "id": node.get("id"),
+                "name": node.get("name"),
+                "owner": node.get("owner", {}).get("login")
+            }
+            return _data
+
+        
+        _response['totalCount'] = watching.get("totalCount")
+        _response['data'] = [edge_to_data(e) for e in edges]
+        _response['lastCursor'] = get_last_cursor(edges)
+
+        return _response
