@@ -34,9 +34,9 @@ query {
 """
 
 FETCH_REPOS = """
-query($repoCursor:String) {
+query($cursor:String) {
   viewer {
-    watching(first:100, orderBy:{field:CREATED_AT, direction:DESC}, after:$repoCursor) {
+    watching(first:10, orderBy:{field:CREATED_AT, direction:DESC}, after:$cursor) {
       totalCount
       edges {
         node {
@@ -51,6 +51,25 @@ query($repoCursor:String) {
     }
   }
 }
+"""
+
+FETCH_ISSUES_IN_REPO = """
+query($repoName:String!, $repoOwner:String!, $cursor:String) { 
+  repository(name:$repoName, owner:$repoOwner) {
+    name
+    issues(first:100, orderBy:{field:UPDATED_AT, direction:DESC}, after:$cursor) {
+      totalCount
+      edges {
+        node {
+          title
+          url
+        }
+        cursor
+      }
+    }
+  }
+}
+
 """
 
 # @TODO: Figure out a query to fetch all issues, even if multiple requests are needed for pagination. 

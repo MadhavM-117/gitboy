@@ -36,3 +36,34 @@ class RepositoryFetchQuery(BaseQuery):
         _response['lastCursor'] = get_last_cursor(edges)
 
         return _response
+
+class RepositoryIssuesFetchQuery(BaseQuery):
+  def __init__(self, variables: Optional[dict] = None):
+    if variables is None:
+      raise ValueError("Expected variables that define a repository.")
+
+    if None in [variables.get("repoName"), variables.get("repoOwner")]:
+      raise ValueError("Repository Name / Owner missing.")
+
+    super().__init__(variables)
+    self.query = FETCH_ISSUES_IN_REPO
+
+  def process_response(self, response: dict):
+    _response = {"_raw": response}
+    issues = response.get("data", {}).get("repository", {}).get("issues", {})
+    edges = issues.get("edges", [])
+
+    def edge_to_data(edge: dict):
+        node = edge.get("node", {})
+        _data = {
+            "title": node.get("title"),
+            "url": node.get("url"),
+        }
+        return _data
+
+    
+    _response['totalCount'] = issues.get("totalCount")
+    _response['data'] = [edge_to_data(e) for e in edges]
+    _response['lastCursor'] = get_last_cursor(edges)
+
+    return _response

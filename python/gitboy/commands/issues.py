@@ -51,7 +51,7 @@ class IssueCommand(BaseCommand):
 
 		if self.sub_type == "assigned":
 			issues = self.api.get_user_repos()
-			print(f"{issues}")
+			print(f"{len(issues)}")
 			return
 
 		if self.sub_type == "mentioned":

@@ -42,15 +42,38 @@ class GithubAPIs:
 		while True:
 			query = gql_query.RepositoryFetchQuery(variables={"cursor": cursor})
 			_response = self._client.process(query)
-			if None in [_response['totalCount'], _response['lastCursor'], _response['data']]:
+			if None in [_response['totalCount'], _response['data']]:
 				break
 
 			data.extend(_response['data'])
 
-			if len(data) >= _response['totalCount']:
+			cursor = _response['lastCursor']
+
+			if cursor is None:
 				# exit loop once pagination loop completes
 				break
 
+		return data
+
+	def get_repo_issues(self, repo_name: str, repo_owner: str):
+		cursor = ""
+		data = []
+		while True:
+			query = gql_query.RepositoryIssuesFetchQuery(variables={
+				"repoName": repo_name, 
+				"repoOwner": repo_owner,
+				"cursor": cursor
+			})
+			_response = self._client.process(query)
+			if None in [_response['totalCount'], _response['data']]:
+				break
+
+			data.extend(_response['data'])
+
 			cursor = _response['lastCursor']
+
+			if cursor is None:
+				# exit loop once pagination loop completes
+				break
 
 		return data
