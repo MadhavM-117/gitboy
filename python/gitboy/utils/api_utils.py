@@ -20,21 +20,13 @@ class GithubAPIs:
         self.organization = config.organization
         self._client = GraphQLClient(self._base_url, auth=f"bearer {self.token}")
 
-    @staticmethod
-    def get_next_pagination_link(link_header: str):
-        """
-        Function to get the next pagination link as per Github's API structure
-        """
-        if link_header is None:
+    def get_logged_in_user(self):
+        query = gql_query.LoggedInUserFetchQuery()
+        _response = self._client.process(query)
+        if _response["data"] is None:
             return None
 
-        links = link_header.split(",")
-        for link in links:
-            values = link.split(";")
-            if values[1].endswith('rel="next"'):
-                return values[0].replace("<", "").replace(">", "")
-
-        return None
+        return _response["data"].get("login")
 
     def get_user_repos(self):
         cursor = ""
@@ -75,3 +67,18 @@ class GithubAPIs:
                 break
 
         return data
+
+    def get_all_issues(self):
+        """
+        Function to get all issues a user has access to.
+        Process:
+          1. Get all repos he has access to
+          2. Fetch issues per repo
+        """
+        repos = self.get_user_repos()
+        issues = []
+
+        for r in repos:
+            issues.extend(self.get_repo_issues(repo_name=r["name"], repo_owner=r["owner"]))
+
+        return issues

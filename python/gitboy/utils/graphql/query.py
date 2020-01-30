@@ -13,6 +13,17 @@ def get_last_cursor(edges: List[dict]):
     return None
 
 
+class LoggedInUserFetchQuery(BaseQuery):
+    def __init__(self, variables: Optional[dict] = None):
+        super().__init__(variables)
+        self.query = constants.FETCH_LOGGED_IN_USER
+
+    def process_response(self, response):
+        _response = {"_raw": response}
+        _response["data"] = {"login": response.get("data", {}).get("viewer", {}).get("login")}
+        return _response
+
+
 class RepositoryFetchQuery(BaseQuery):
     def __init__(self, variables: Optional[dict] = None):
         super().__init__(variables)

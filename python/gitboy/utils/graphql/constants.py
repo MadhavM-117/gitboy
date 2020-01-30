@@ -1,34 +1,7 @@
-FETCH_USER_ISSUES = """
+FETCH_LOGGED_IN_USER = """
 query {
   viewer {
-    issues(orderBy:{direction:DESC, field:UPDATED_AT}, filterBy:{states:[OPEN]}, first:10) {
-      totalCount
-      nodes {
-        title
-        url
-      }
-    }
-  }
-}
-"""
-
-FETCH_ALL_ISSUES_THROUGH_REPOS = """
-query {
-  viewer {
-    watching(first:100, orderBy:{field:UPDATED_AT, direction:DESC}) {
-      totalCount
-      nodes {
-        name
-        issues(first:100, orderBy:{field:UPDATED_AT, direction:DESC} ,filterBy:{states:[OPEN, CLOSED]}) {
-          totalCount
-          nodes {
-            title
-            url
-            updatedAt
-          }
-        }
-      }
-    }
+    login
   }
 }
 """
