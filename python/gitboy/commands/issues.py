@@ -45,10 +45,16 @@ class IssueCommand(BaseCommand):
         # returning true as no validation currently required.
         return self.type == "issues"
 
+    @staticmethod
+    def format_issue(issue: dict):
+        return f"{issue.get('title')} | {issue.get('url')} | {issue.get('updatedAt')}"
+
     def process(self):
         if self.sub_type == "all":
-            issues = self.api.get_issues("all")
-            print(f"{len(issues)} Issues ({self.sub_type}): " + "\n" + "\n".join(issues))
+            issues = self.api.get_all_issues()
+            print(
+                f"{len(issues)} Issues ({self.sub_type}): " + "\n" + "\n".join([self.format_issue(i) for i in issues])
+            )
             return
 
         if self.sub_type == "assigned":

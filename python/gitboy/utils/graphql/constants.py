@@ -36,6 +36,7 @@ query($repoName:String!, $repoOwner:String!, $cursor:String) {
         node {
           title
           url
+          updatedAt
         }
         cursor
       }

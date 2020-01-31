@@ -29,7 +29,7 @@ class GithubAPIs:
         return _response["data"].get("login")
 
     def get_user_repos(self):
-        cursor = ""
+        cursor = None
         data = []
         while True:
             query = gql_query.RepositoryFetchQuery(variables={"cursor": cursor})
@@ -48,7 +48,7 @@ class GithubAPIs:
         return data
 
     def get_repo_issues(self, repo_name: str, repo_owner: str):
-        cursor = ""
+        cursor = None
         data = []
         while True:
             query = gql_query.RepositoryIssuesFetchQuery(
@@ -70,7 +70,7 @@ class GithubAPIs:
 
     def get_all_issues(self):
         """
-        Function to get all issues a user has access to.
+        Function to get all issues a user has access to, sorted
         Process:
           1. Get all repos he has access to
           2. Fetch issues per repo
@@ -78,7 +78,9 @@ class GithubAPIs:
         repos = self.get_user_repos()
         issues = []
 
+        # @TODO: run the following loop using multi-processing
         for r in repos:
             issues.extend(self.get_repo_issues(repo_name=r["name"], repo_owner=r["owner"]))
 
+        issues = sorted(issues, key=lambda x: x["updatedAt"], reverse=True)
         return issues

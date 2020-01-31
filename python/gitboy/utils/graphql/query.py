@@ -1,4 +1,7 @@
 from typing import Optional, List
+
+from dateutil.parser import parse
+
 from .core import BaseQuery
 from . import constants
 
@@ -60,11 +63,15 @@ class RepositoryIssuesFetchQuery(BaseQuery):
     def process_response(self, response: dict):
         _response = {"_raw": response}
         issues = response.get("data", {}).get("repository", {}).get("issues", {})
-        edges = issues.get("edges", [])
+        edges = issues.get("edges") or []
 
         def edge_to_data(edge: dict):
             node = edge.get("node", {})
-            _data = {"title": node.get("title"), "url": node.get("url")}
+            _data = {
+                "title": node.get("title"),
+                "url": node.get("url"),
+                "updatedAt": node.get("updatedAt") and parse(node["updatedAt"]),
+            }
             return _data
 
         _response["totalCount"] = issues.get("totalCount")
