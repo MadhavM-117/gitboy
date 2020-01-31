@@ -7,4 +7,4 @@ def add_command_parser(subparsers: argparse._SubParsersAction):
     Args:
         subparsers: subparser to add arguments to
     """
-    pass
+    return "pr", None

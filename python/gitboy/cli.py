@@ -2,16 +2,22 @@ import argparse
 import os
 
 from .commands import issues, pull_requests
+from .utils.core import ProcessDispatcher
 
 TOKEN = os.environ.get("GITHUB_TOKEN")
+PARSERS = {}
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description="CLI tool to help manage Github stuff")
     subparsers = parser.add_subparsers(title="commands", dest="type")
 
-    issues.add_command_parser(subparsers)
-    pull_requests.add_command_parser(subparsers)
+    i_key, i_parser = issues.add_command_parser(subparsers)
+    PARSERS[i_key] = i_parser
+
+    pr_key, pr_parser = pull_requests.add_command_parser(subparsers)
+    PARSERS[pr_key] = pr_parser
+
     return parser
 
 
@@ -23,12 +29,4 @@ def get_args():
 
 if __name__ == "__main__":
     parser = get_parser()
-    args = vars(parser.parse_args())
-    # @TODO: Add dispatch logic to send execution to correct handler
-    if args["type"] == "issues":
-        if not issues.IssueCommand(args).process():
-            # @TODO: Add logic to display issue parser help
-            pass
-        exit()
-
-    parser.print_help()
+    exit(ProcessDispatcher(parser, PARSERS).dispatch())

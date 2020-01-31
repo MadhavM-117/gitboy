@@ -33,7 +33,7 @@ def add_command_parser(subparsers: argparse._SubParsersAction):
     label_parser: argparse.ArgumentParser = issue_sub_parser.add_parser("label")
     label_parser.add_argument("label", type=str, help="Filter issues that have this label")
 
-    return issue_parser
+    return "issues", issue_parser
 
 
 class IssueCommand(BaseCommand):
