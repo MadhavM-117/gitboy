@@ -4,9 +4,16 @@ Refer: https://developer.github.com/v3/
 """
 from typing import Optional
 
+import os
+from pathos.multiprocessing import ProcessingPool as Pool
+
 from .config import get_config, Config
 from .graphql.core import GraphQLClient
 from .graphql import query as gql_query
+
+
+def fetch_objects(fetch_function):
+    return fetch_function
 
 
 class GithubAPIs:
@@ -78,9 +85,22 @@ class GithubAPIs:
         repos = self.get_user_repos()
         issues = []
 
-        # @TODO: run the following loop using multi-processing
-        for r in repos:
-            issues.extend(self.get_repo_issues(repo_name=r["name"], repo_owner=r["owner"]))
+        if self._config.parallelization == "OPTIMAL":
+            cpu_cores = os.cpu_count() * 3 // 4
+        elif self._config.parallelization == "ALL":
+            cpu_cores = os.cpu_count()
+        else:
+            cpu_cores = 1
+
+        def fetch_repo_issues(r):
+            return self.get_repo_issues(repo_name=r["name"], repo_owner=r["owner"])
+
+        with Pool(cpu_cores) as p:
+            res = p.amap(fetch_repo_issues, repos)
+            p.close()
+            p.join()
+
+        [issues.extend(r) for r in res.get()]
 
         issues = sorted(issues, key=lambda x: x["updatedAt"], reverse=True)
         return issues

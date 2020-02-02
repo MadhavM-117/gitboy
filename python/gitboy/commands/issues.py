@@ -55,6 +55,7 @@ class IssueCommand(BaseCommand):
             print(
                 f"{len(issues)} Issues ({self.sub_type}): " + "\n" + "\n".join([self.format_issue(i) for i in issues])
             )
+            print(f"{len(issues)} Issues")
             return
 
         if self.sub_type == "assigned":

@@ -30,6 +30,7 @@ class Config:
         self._config = None
         self.token = None
         self.organization = None
+        self.parallelization = None
 
         self.load_config()
 
@@ -42,6 +43,10 @@ class Config:
             raise RuntimeError("Github API token has not been specified in the config.")
 
         self.organization = self._config.get("organization")
+        self.parallelization = self._config.get("parallelization", "OPTIMAL")
+
+        if self.parallelization not in ["OPTIMAL", "ALL", "NONE"]:
+            self.parallelization = "OPTIMAL"
 
 
 CONFIG = Config(CONFIG_PATH)
